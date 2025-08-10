@@ -294,7 +294,7 @@ export default function PRReviewAgent() {
                     value="knowledge"
                     className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
                   >
-                    Knowledge
+                    Knowledge Base
                   </TabsTrigger>
                   <TabsTrigger
                     value="reasoning"
