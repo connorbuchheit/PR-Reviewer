@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Brain, Search, Code, FileText, Package, Clock, CheckCircle, ArrowRight, Zap } from "lucide-react"
+import { reasoningFlowData } from "@/data/reasoning-flow-data"
 
 interface ReasoningNode {
   node_id: string
@@ -19,88 +20,9 @@ interface ReasoningNode {
   connections: string[]
 }
 
-const mockReasoningNodes: ReasoningNode[] = [
-  {
-    node_id: "context_gathering",
-    type: "retrieval",
-    title: "Repository Context Analysis",
-    duration: "2.3s",
-    confidence: 0.95,
-    status: "completed",
-    reasoning: "Need to understand current architecture before evaluating changes",
-    connections: ["style_analysis"],
-  },
-  {
-    node_id: "style_analysis",
-    type: "reasoning",
-    title: "Apply Performance Review Criteria",
-    duration: "1.8s",
-    confidence: 0.92,
-    status: "completed",
-    reasoning: "Performance criteria emphasizes query efficiency and caching strategies",
-    connections: ["db_analysis", "cache_analysis"],
-  },
-  {
-    node_id: "db_analysis",
-    type: "analysis",
-    title: "Database Query Evaluation",
-    duration: "2.1s",
-    confidence: 0.85,
-    status: "completed",
-    reasoning: "Query optimization shows good performance understanding, but security vulnerability detected",
-    connections: ["error_handling_analysis", "dependency_analysis"],
-  },
-  {
-    node_id: "cache_analysis",
-    type: "analysis",
-    title: "Redis Caching Implementation",
-    duration: "1.9s",
-    confidence: 0.78,
-    status: "completed",
-    reasoning: "Caching strategy is sound but needs production-ready optimizations",
-    connections: ["dependency_analysis", "error_handling_analysis"],
-  },
-  {
-    node_id: "dependency_analysis",
-    type: "tool_call",
-    title: "Package Recommendations",
-    duration: "1.5s",
-    confidence: 0.88,
-    status: "completed",
-    reasoning: "Analyzed current packages and identified better alternatives",
-    connections: ["summary_generation"],
-  },
-  {
-    node_id: "error_handling_analysis",
-    type: "reasoning",
-    title: "Error Handling Evaluation",
-    duration: "1.4s",
-    confidence: 0.82,
-    status: "completed",
-    reasoning: "Error handling exists but not comprehensive for production reliability",
-    connections: ["test_analysis"],
-  },
-  {
-    node_id: "test_analysis",
-    type: "analysis",
-    title: "Test Coverage Assessment",
-    duration: "1.2s",
-    confidence: 0.75,
-    status: "completed",
-    reasoning: "Good unit test foundation but lacks comprehensive integration testing",
-    connections: ["summary_generation"],
-  },
-  {
-    node_id: "summary_generation",
-    type: "generation",
-    title: "Review Summary Creation",
-    duration: "2.8s",
-    confidence: 0.87,
-    status: "completed",
-    reasoning: "Synthesized all analysis results into comprehensive review summary",
-    connections: [],
-  },
-]
+interface ReasoningFlowGraphProps {
+  prId?: string
+}
 
 const getNodeIcon = (type: string) => {
   switch (type) {
@@ -136,9 +58,11 @@ const getNodeColor = (type: string) => {
   }
 }
 
-export function ReasoningFlowGraph() {
+export function ReasoningFlowGraph({ prId = "pr_142" }: ReasoningFlowGraphProps) {
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [hoveredNode, setHoveredNode] = useState<string | null>(null)
+
+  const mockReasoningNodes = reasoningFlowData[prId] || reasoningFlowData.pr_142
 
   const selectedNodeData = selectedNode ? mockReasoningNodes.find((n) => n.node_id === selectedNode) : null
 

@@ -1,4 +1,4 @@
-A modern React/Next.js frontend for the PR Reviewer with AgentOps replay capabilities.
+A React/Next.js frontend for a logger dashboard displaying audits of an agentic PR Reviewer. AgentOps replay capabilities are integrated.
 
 ### Prerequisites
 

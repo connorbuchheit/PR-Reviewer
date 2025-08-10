@@ -13,8 +13,12 @@ import { ReasoningFlowGraph } from "@/components/reasoning-flow-graph"
 import { ReasoningTimeline } from "@/components/reasoning-timeline"
 import { EnhancedChainOfThoughtReplay } from "@/components/enhanced-chain-of-thought-replay"
 import { KnowledgeBaseStatus } from "@/components/knowledge-base-status"
+import { KnowledgeBaseFull } from "@/components/knowledge-base-full"
 import { PolicyViolations } from "@/components/policy-violations"
 import { KnowledgeConflicts } from "@/components/knowledge-conflicts"
+import { PRSelector } from "@/components/pr-selector"
+import { mockPRs, mockReviewResults } from "@/data/mock-prs"
+import type { PRData } from "@/types/pr-data"
 import {
   GitPullRequest,
   Play,
@@ -29,54 +33,21 @@ import {
   Activity,
   TrendingUp,
   Database,
+  List,
 } from "lucide-react"
 
 export default function PRReviewAgent() {
   const [selectedCriteria, setSelectedCriteria] = useState("performance")
   const [isReviewing, setIsReviewing] = useState(false)
-  const [showReplay, setShowReplay] = useState(false)
+  const [showPRSelector, setShowPRSelector] = useState(false)
+  const [selectedPR, setSelectedPR] = useState<PRData>(mockPRs[0]) // Default to first PR
 
-  const mockPRData = {
-    title: "Optimize database queries and add caching layer",
-    number: 142,
-    author: "sarah-dev",
-    branch: "feature/db-optimization",
-    files: 8,
-    additions: 156,
-    deletions: 43,
-    status: "reviewed",
-  }
-
-  const mockReviewResults = {
-    summary:
-      "This PR introduces significant performance improvements through query optimization and Redis caching. The implementation follows repository patterns well but could benefit from additional error handling and test coverage.",
-    score: 85,
-    categories: {
-      performance: 92,
-      security: 78,
-      style: 88,
-      testing: 65,
-    },
-    comments: [
-      {
-        file: "src/database/queries.ts",
-        line: 23,
-        type: "suggestion",
-        message: "Consider using a prepared statement here to prevent SQL injection and improve performance.",
-        code: "const query = `SELECT * FROM users WHERE id = ${userId}`",
-      },
-      {
-        file: "src/cache/redis.ts",
-        line: 15,
-        type: "optimization",
-        message: "Add connection pooling to handle high-concurrency scenarios better.",
-        code: "const client = redis.createClient()",
-      },
-    ],
-    packages: [
-      { name: "ioredis", reason: "Better Redis client with TypeScript support" },
-      { name: "@types/node", reason: "Missing type definitions for Node.js" },
-    ],
+  const currentReviewResults = mockReviewResults[selectedPR.id] || {
+    summary: "Review analysis not yet available for this PR.",
+    score: 0,
+    categories: { performance: 0, security: 0, style: 0, testing: 0 },
+    comments: [],
+    packages: [],
   }
 
   const handleReview = () => {
@@ -84,6 +55,25 @@ export default function PRReviewAgent() {
     setTimeout(() => {
       setIsReviewing(false)
     }, 3000)
+  }
+
+  const handleSelectPR = (pr: PRData) => {
+    setSelectedPR(pr)
+  }
+
+  if (showPRSelector) {
+    return (
+      <div className="min-h-screen bg-slate-800 p-6">
+        <div className="max-w-7xl mx-auto">
+          <PRSelector
+            prs={mockPRs}
+            selectedPR={selectedPR}
+            onSelectPR={handleSelectPR}
+            onClose={() => setShowPRSelector(false)}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -103,6 +93,14 @@ export default function PRReviewAgent() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowPRSelector(true)}
+              variant="outline"
+              className="border-slate-600 text-white hover:bg-slate-800 bg-transparent"
+            >
+              <List className="h-4 w-4 mr-2" />
+              Browse PRs
+            </Button>
             <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-600">
               <Activity className="h-3 w-3 mr-1" />
               AgentOps Active
@@ -124,34 +122,53 @@ export default function PRReviewAgent() {
                 <CardTitle className="flex items-center gap-2 text-white">
                   <GitPullRequest className="h-5 w-5 text-purple-400" />
                   <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    Pull Request #{mockPRData.number}
+                    Pull Request #{selectedPR.number}
                   </span>
                 </CardTitle>
-                <CardDescription className="text-white/70">{mockPRData.title}</CardDescription>
+                <CardDescription className="text-white/70">{selectedPR.title}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/60">Author:</span>
-                  <span className="font-medium text-white">{mockPRData.author}</span>
+                  <span className="font-medium text-white">{selectedPR.author}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/60">Branch:</span>
                   <Badge variant="outline" className="text-xs border-slate-600 text-white/80">
                     <GitBranch className="h-3 w-3 mr-1" />
-                    {mockPRData.branch}
+                    {selectedPR.branch}
                   </Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/60">Status:</span>
+                  <Badge variant="outline" className="text-xs border-slate-600 text-white/80 capitalize">
+                    {selectedPR.status}
+                  </Badge>
+                </div>
+                {selectedPR.description && (
+                  <div className="text-sm">
+                    <span className="text-white/60 block mb-1">Description:</span>
+                    <p className="text-white/80 text-xs leading-relaxed">{selectedPR.description}</p>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1">
+                  {selectedPR.labels.map((label) => (
+                    <Badge key={label} variant="outline" className="text-xs border-slate-600 text-white/60">
+                      {label}
+                    </Badge>
+                  ))}
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-sm">
                   <div>
-                    <div className="font-semibold text-white">{mockPRData.files}</div>
+                    <div className="font-semibold text-white">{selectedPR.files}</div>
                     <div className="text-white/60">Files</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-green-400">+{mockPRData.additions}</div>
+                    <div className="font-semibold text-green-400">+{selectedPR.additions}</div>
                     <div className="text-white/60">Added</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-red-400">-{mockPRData.deletions}</div>
+                    <div className="font-semibold text-red-400">-{selectedPR.deletions}</div>
                     <div className="text-white/60">Deleted</div>
                   </div>
                 </div>
@@ -253,7 +270,7 @@ export default function PRReviewAgent() {
           {/* Middle Column - Review Results */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="results" className="w-full">
-              <TabsList className="grid w-full grid-cols-6 bg-slate-800 border-slate-700">
+              <TabsList className="grid w-full grid-cols-7 bg-slate-800 border-slate-700">
                 <TabsTrigger
                   value="results"
                   className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
@@ -271,6 +288,12 @@ export default function PRReviewAgent() {
                   className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
                 >
                   KB Conflicts
+                </TabsTrigger>
+                <TabsTrigger
+                  value="knowledge"
+                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
+                >
+                  Knowledge Base
                 </TabsTrigger>
                 <TabsTrigger
                   value="reasoning"
@@ -301,16 +324,16 @@ export default function PRReviewAgent() {
                         Review Summary
                       </span>
                       <Badge className="bg-green-900/30 text-green-400 border-green-600">
-                        Score: {mockReviewResults.score}/100
+                        Score: {currentReviewResults.score}/100
                       </Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-white/80">{mockReviewResults.summary}</p>
+                    <p className="text-white/80">{currentReviewResults.summary}</p>
 
                     {/* Category Scores */}
                     <div className="grid grid-cols-2 gap-4">
-                      {Object.entries(mockReviewResults.categories).map(([category, score]) => (
+                      {Object.entries(currentReviewResults.categories).map(([category, score]) => (
                         <div key={category} className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="capitalize font-medium text-white">{category}</span>
@@ -324,94 +347,110 @@ export default function PRReviewAgent() {
                 </Card>
 
                 {/* Comments */}
-                <Card className="bg-black border-slate-700">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-purple-400" />
-                      <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        Review Comments
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {mockReviewResults.comments.map((comment, index) => (
-                      <div key={index} className="border border-slate-700 rounded-lg p-4 space-y-2 bg-slate-900/50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={comment.type === "suggestion" ? "default" : "secondary"}
-                              className="bg-purple-900/30 text-purple-400 border-purple-600"
-                            >
-                              {comment.type === "suggestion" ? (
-                                <AlertTriangle className="h-3 w-3 mr-1" />
-                              ) : (
-                                <Zap className="h-3 w-3 mr-1" />
-                              )}
-                              {comment.type}
-                            </Badge>
-                            <span className="text-sm text-white/60">
-                              {comment.file}:{comment.line}
-                            </span>
+                {currentReviewResults.comments.length > 0 && (
+                  <Card className="bg-black border-slate-700">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-purple-400" />
+                        <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                          Review Comments
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {currentReviewResults.comments.map((comment, index) => (
+                        <div key={index} className="border border-slate-700 rounded-lg p-4 space-y-2 bg-slate-900/50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={comment.type === "suggestion" ? "default" : "secondary"}
+                                className={
+                                  comment.type === "error"
+                                    ? "bg-red-900/30 text-red-400 border-red-600"
+                                    : comment.type === "warning"
+                                      ? "bg-yellow-900/30 text-yellow-400 border-yellow-600"
+                                      : "bg-purple-900/30 text-purple-400 border-purple-600"
+                                }
+                              >
+                                {comment.type === "error" ? (
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                ) : comment.type === "warning" ? (
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <Zap className="h-3 w-3 mr-1" />
+                                )}
+                                {comment.type}
+                              </Badge>
+                              <span className="text-sm text-white/60">
+                                {comment.file}:{comment.line}
+                              </span>
+                            </div>
                           </div>
+                          <p className="text-sm text-white/80">{comment.message}</p>
+                          <div className="bg-slate-800 rounded p-2 text-sm font-mono text-white/90">{comment.code}</div>
                         </div>
-                        <p className="text-sm text-white/80">{comment.message}</p>
-                        <div className="bg-slate-800 rounded p-2 text-sm font-mono text-white/90">{comment.code}</div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Package Suggestions */}
-                <Card className="bg-black border-slate-700">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5 text-purple-400" />
-                      <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        Package Suggestions
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {mockReviewResults.packages.map((pkg, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-800 rounded-lg"
-                      >
-                        <div>
-                          <div className="font-medium text-blue-300">{pkg.name}</div>
-                          <div className="text-sm text-blue-400/80">{pkg.reason}</div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-blue-600 text-blue-400 hover:bg-blue-900/30 bg-transparent"
+                {currentReviewResults.packages.length > 0 && (
+                  <Card className="bg-black border-slate-700">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5 text-purple-400" />
+                        <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                          Package Suggestions
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {currentReviewResults.packages.map((pkg, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-800 rounded-lg"
                         >
-                          Install
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                          <div>
+                            <div className="font-medium text-blue-300">{pkg.name}</div>
+                            <div className="text-sm text-blue-400/80">{pkg.reason}</div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-blue-600 text-blue-400 hover:bg-blue-900/30 bg-transparent"
+                          >
+                            Install
+                          </Button>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="policies" className="space-y-6">
-                <PolicyViolations />
+                <PolicyViolations prId={selectedPR.id} />
               </TabsContent>
 
               <TabsContent value="conflicts" className="space-y-6">
-                <KnowledgeConflicts />
+                <KnowledgeConflicts prId={selectedPR.id} />
+              </TabsContent>
+
+              <TabsContent value="knowledge" className="space-y-6">
+                <KnowledgeBaseFull />
               </TabsContent>
 
               <TabsContent value="reasoning" className="space-y-6">
-                <ReasoningFlowGraph />
+                <ReasoningFlowGraph prId={selectedPR.id} />
               </TabsContent>
 
               <TabsContent value="timeline" className="space-y-6">
-                <ReasoningTimeline />
+                <ReasoningTimeline prId={selectedPR.id} />
               </TabsContent>
 
               <TabsContent value="replay" className="space-y-6">
-                <EnhancedChainOfThoughtReplay />
+                <EnhancedChainOfThoughtReplay prId={selectedPR.id} />
               </TabsContent>
             </Tabs>
           </div>

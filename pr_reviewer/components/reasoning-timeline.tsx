@@ -16,6 +16,7 @@ import {
   FileText,
   Timer,
 } from "lucide-react"
+import { reasoningTimelineData } from "@/data/reasoning-timeline-data"
 
 interface TimelineStep {
   timestamp: string
@@ -33,131 +34,9 @@ interface TimelineStep {
   }
 }
 
-const mockTimelineData: TimelineStep[] = [
-  {
-    timestamp: "10:30:00.000",
-    node_id: "context_gathering",
-    title: "Repository Context Analysis",
-    type: "retrieval",
-    duration: "2.3s",
-    durationMs: 2300,
-    status: "completed",
-    reasoning: "Analyzed repository structure, existing patterns, and tech stack to understand the codebase context.",
-    details: {
-      inputs: { pr_files: 8, lines_changed: 199 },
-      outputs: { patterns_found: 3, tech_stack_identified: true },
-      confidence: 0.95,
-    },
-  },
-  {
-    timestamp: "10:30:02.300",
-    node_id: "style_analysis",
-    title: "Apply Performance Review Criteria",
-    type: "reasoning",
-    duration: "1.8s",
-    durationMs: 1800,
-    status: "completed",
-    reasoning: "Applied performance-focused review criteria, weighting query optimization and caching strategies.",
-    details: {
-      inputs: { criteria: "performance", style_guide: "loaded" },
-      outputs: { focus_areas: 4, weight_distribution: "calculated" },
-      confidence: 0.92,
-    },
-  },
-  {
-    timestamp: "10:30:04.100",
-    node_id: "db_analysis",
-    title: "Database Query Evaluation",
-    type: "analysis",
-    duration: "2.1s",
-    durationMs: 2100,
-    status: "completed",
-    reasoning:
-      "Evaluated database query optimizations and identified both performance improvements and security concerns.",
-    details: {
-      inputs: { files_analyzed: 1, queries_reviewed: 5 },
-      outputs: { performance_score: 92, security_issues: 1 },
-      confidence: 0.85,
-    },
-  },
-  {
-    timestamp: "10:30:06.200",
-    node_id: "cache_analysis",
-    title: "Redis Caching Implementation",
-    type: "analysis",
-    duration: "1.9s",
-    durationMs: 1900,
-    status: "completed",
-    reasoning: "Analyzed Redis caching implementation, found good strategy but identified scalability concerns.",
-    details: {
-      inputs: { cache_files: 1, redis_operations: 3 },
-      outputs: { implementation_score: 78, scalability_issues: 1 },
-      confidence: 0.78,
-    },
-  },
-  {
-    timestamp: "10:30:08.100",
-    node_id: "dependency_analysis",
-    title: "Package Recommendations",
-    type: "tool_call",
-    duration: "1.5s",
-    durationMs: 1500,
-    status: "completed",
-    reasoning:
-      "Analyzed current dependencies and identified better alternatives for TypeScript support and performance.",
-    details: {
-      inputs: { current_packages: 2, analysis_queries: 2 },
-      outputs: { recommendations: 2, compatibility_checked: true },
-      confidence: 0.88,
-    },
-  },
-  {
-    timestamp: "10:30:09.600",
-    node_id: "error_handling_analysis",
-    title: "Error Handling Evaluation",
-    type: "reasoning",
-    duration: "1.4s",
-    durationMs: 1400,
-    status: "completed",
-    reasoning:
-      "Evaluated error handling patterns, found basic implementation but identified gaps for production reliability.",
-    details: {
-      inputs: { error_patterns_checked: 5, code_blocks: 8 },
-      outputs: { coverage_score: 65, missing_patterns: 3 },
-      confidence: 0.82,
-    },
-  },
-  {
-    timestamp: "10:30:11.000",
-    node_id: "test_analysis",
-    title: "Test Coverage Assessment",
-    type: "analysis",
-    duration: "1.2s",
-    durationMs: 1200,
-    status: "completed",
-    reasoning: "Assessed test coverage and quality, found good unit tests but lacking integration test coverage.",
-    details: {
-      inputs: { test_files: 2, coverage_data: "65%" },
-      outputs: { unit_test_score: 80, integration_score: 45 },
-      confidence: 0.75,
-    },
-  },
-  {
-    timestamp: "10:30:12.200",
-    node_id: "summary_generation",
-    title: "Review Summary Creation",
-    type: "generation",
-    duration: "2.8s",
-    durationMs: 2800,
-    status: "completed",
-    reasoning: "Synthesized all analysis results into a comprehensive review summary with actionable recommendations.",
-    details: {
-      inputs: { analysis_nodes: 6, scores_aggregated: 4 },
-      outputs: { summary_generated: true, recommendations: 5 },
-      confidence: 0.87,
-    },
-  },
-]
+interface ReasoningTimelineProps {
+  prId?: string
+}
 
 const getStepIcon = (type: string) => {
   switch (type) {
@@ -179,22 +58,24 @@ const getStepIcon = (type: string) => {
 const getTypeColor = (type: string) => {
   switch (type) {
     case "retrieval":
-      return "text-blue-400 bg-blue-900/30"
+      return "text-blue-400 bg-blue-500/40"
     case "reasoning":
-      return "text-purple-400 bg-purple-900/30"
+      return "text-purple-400 bg-purple-500/40"
     case "analysis":
-      return "text-green-400 bg-green-900/30"
+      return "text-green-400 bg-green-500/40"
     case "tool_call":
-      return "text-orange-400 bg-orange-900/30"
+      return "text-orange-400 bg-orange-500/40"
     case "generation":
-      return "text-pink-400 bg-pink-900/30"
+      return "text-pink-400 bg-pink-500/40"
     default:
-      return "text-gray-400 bg-gray-900/30"
+      return "text-gray-400 bg-gray-500/40"
   }
 }
 
-export function ReasoningTimeline() {
+export function ReasoningTimeline({ prId = "pr_142" }: ReasoningTimelineProps) {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set())
+
+  const mockTimelineData = reasoningTimelineData[prId] || reasoningTimelineData.pr_142
 
   const toggleExpanded = (nodeId: string) => {
     const newExpanded = new Set(expandedSteps)
@@ -240,10 +121,13 @@ export function ReasoningTimeline() {
           <div className="flex gap-1 h-2 bg-slate-700 rounded-full overflow-hidden">
             {mockTimelineData.map((step, index) => {
               const widthPercent = (step.durationMs / totalDuration) * 100
+              const baseColor = getTypeColor(step.type).split(" ")[1].replace("/40", "/50")
+              const hoverColor = getTypeColor(step.type).split(" ")[1].replace("/40", "/80")
+
               return (
                 <div
                   key={step.node_id}
-                  className={`h-full ${getTypeColor(step.type).split(" ")[1]} transition-all hover:opacity-80`}
+                  className={`h-full transition-all duration-200 cursor-pointer ${baseColor} hover:${hoverColor} hover:scale-y-125 hover:shadow-lg`}
                   style={{ width: `${widthPercent}%` }}
                   title={`${step.title}: ${step.duration}`}
                 />

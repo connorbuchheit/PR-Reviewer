@@ -24,149 +24,15 @@ import {
   Database,
   Users,
   XCircle,
+  Award,
+  Shield,
 } from "lucide-react"
+import { chainOfThoughtData } from "@/data/chain-of-thought-data"
 import type { EnhancedChainOfThoughtStep } from "@/types/knowledge-retrieval"
 
-// Enhanced mock data with knowledge retrieval and conflicts
-const mockEnhancedChainOfThought: EnhancedChainOfThoughtStep[] = [
-  {
-    id: "cot_1",
-    timestamp: 0,
-    type: "thought",
-    content:
-      "I need to start by understanding what this PR is trying to accomplish. Let me examine the title and description first.",
-    context: "Initial Context Gathering",
-    confidence: 0.95,
-    relatedNode: "context_gathering",
-  },
-  {
-    id: "cot_2",
-    timestamp: 800,
-    type: "observation",
-    content:
-      "The PR title mentions 'Optimize database queries and add caching layer' - this suggests performance improvements are the main focus.",
-    context: "PR Analysis",
-    confidence: 0.92,
-    relatedNode: "context_gathering",
-  },
-  {
-    id: "cot_3",
-    timestamp: 1500,
-    type: "action",
-    content: "Scanning repository structure to understand current architecture patterns...",
-    context: "Repository Analysis",
-    actionType: "analyze_code",
-    relatedNode: "context_gathering",
-  },
-  {
-    id: "cot_4",
-    timestamp: 2300,
-    type: "observation",
-    content:
-      "I can see this codebase follows a repository pattern with service layers. The current approach uses direct SQL queries without caching.",
-    context: "Architecture Understanding",
-    confidence: 0.88,
-    relatedNode: "context_gathering",
-    appliedPolicies: ["pattern_repository"],
-    knowledgeConfidence: 0.91,
-  },
-  {
-    id: "cot_5",
-    timestamp: 3100,
-    type: "thought",
-    content:
-      "Since the user specified 'Performance Focus' as the review criteria, I should weight query optimization and caching strategies heavily in my analysis.",
-    context: "Criteria Application",
-    confidence: 0.94,
-    relatedNode: "style_analysis",
-  },
-  {
-    id: "cot_6",
-    timestamp: 3900,
-    type: "decision",
-    content:
-      "I'll focus 40% on performance, 30% on reliability (error handling), and 30% on maintainability. This aligns with the performance-focused criteria.",
-    context: "Review Strategy",
-    confidence: 0.91,
-    relatedNode: "style_analysis",
-  },
-  {
-    id: "cot_7",
-    timestamp: 4700,
-    type: "action",
-    content: "Analyzing database queries in src/database/queries.ts...",
-    context: "Code Analysis",
-    actionType: "analyze_code",
-    metadata: { file: "src/database/queries.ts" },
-    relatedNode: "db_analysis",
-  },
-  {
-    id: "cot_8",
-    timestamp: 5500,
-    type: "observation",
-    content: "Found several optimized queries that should reduce N+1 problems. Good use of indexing strategies.",
-    context: "Performance Assessment",
-    confidence: 0.87,
-    metadata: { score: 92 },
-    relatedNode: "db_analysis",
-  },
-  {
-    id: "cot_9",
-    timestamp: 6200,
-    type: "thought",
-    content:
-      "Wait, I'm seeing a potential SQL injection vulnerability on line 23. This is concerning from a security perspective. Let me check our security policies.",
-    context: "Security Analysis",
-    confidence: 0.95,
-    metadata: { file: "src/database/queries.ts", line: 23 },
-    relatedNode: "db_analysis",
-  },
-  {
-    id: "cot_10",
-    timestamp: 6800,
-    type: "action",
-    content:
-      "Flagging security issue and preparing recommendation for prepared statements based on company security policy...",
-    context: "Security Remediation",
-    actionType: "generate_comment",
-    metadata: { file: "src/database/queries.ts", line: 23 },
-    relatedNode: "db_analysis",
-    appliedPolicies: ["policy_sql_injection"],
-    knowledgeConfidence: 0.95,
-  },
-  {
-    id: "cot_11",
-    timestamp: 7600,
-    type: "action",
-    content: "Moving to analyze Redis caching implementation in src/cache/redis.ts...",
-    context: "Cache Analysis",
-    actionType: "analyze_code",
-    metadata: { file: "src/cache/redis.ts" },
-    relatedNode: "cache_analysis",
-  },
-  {
-    id: "cot_12",
-    timestamp: 8400,
-    type: "observation",
-    content:
-      "The Redis setup is basic but functional. I see appropriate TTL settings, but no connection pooling. Let me check our policies on this...",
-    context: "Caching Strategy Review",
-    confidence: 0.78,
-    relatedNode: "cache_analysis",
-  },
-  {
-    id: "cot_13",
-    timestamp: 9100,
-    type: "reflection",
-    content:
-      "⚠️ KNOWLEDGE CONFLICT: I found conflicting guidance about connection pooling requirements. Security policy mandates it, but team practices suggest it's optional for small services. I need to flag this for human review rather than make a potentially incorrect recommendation.",
-    context: "Conflict Detection",
-    confidence: 0.45,
-    relatedNode: "cache_analysis",
-    conflictingKnowledge: ["security_pooling_policy", "team_pooling_guideline"],
-    knowledgeConfidence: 0.45,
-  },
-]
+interface EnhancedChainOfThoughtReplayProps {
+  prId?: string
+}
 
 const getStepIcon = (type: string, actionType?: string) => {
   if (type === "action" && actionType) {
@@ -202,12 +68,23 @@ const getStepIcon = (type: string, actionType?: string) => {
   }
 }
 
-const getStepColor = (type: string, hasConflict?: boolean) => {
+const getStepColor = (step: EnhancedChainOfThoughtStep, hasConflict?: boolean) => {
   if (hasConflict) {
     return "bg-red-900/30 border-red-600 text-red-400"
   }
 
-  switch (type) {
+  // Special styling for successful completion steps
+  if (
+    step.content.includes("✅") ||
+    step.content.includes("🏆") ||
+    step.content.includes("APPROVAL RECOMMENDED") ||
+    step.content.includes("EXCELLENT") ||
+    step.content.includes("EXCEPTIONAL")
+  ) {
+    return "bg-green-900/30 border-green-600 text-green-400"
+  }
+
+  switch (step.type) {
     case "thought":
       return "bg-purple-900/30 border-purple-600 text-purple-400"
     case "observation":
@@ -223,11 +100,24 @@ const getStepColor = (type: string, hasConflict?: boolean) => {
   }
 }
 
-export function EnhancedChainOfThoughtReplay() {
+const getSuccessIcon = (content: string) => {
+  if (content.includes("🏆") || content.includes("EXCEPTIONAL")) {
+    return <Award className="h-4 w-4" />
+  }
+  if (content.includes("✅") || content.includes("APPROVAL RECOMMENDED") || content.includes("EXCELLENT")) {
+    return <CheckCircle className="h-4 w-4" />
+  }
+  return null
+}
+
+export function EnhancedChainOfThoughtReplay({ prId = "pr_142" }: EnhancedChainOfThoughtReplayProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
   const [progress, setProgress] = useState(0)
+
+  // Get the chain of thought data for the current PR
+  const mockEnhancedChainOfThought = chainOfThoughtData[prId] || chainOfThoughtData.pr_142
 
   const totalDuration = mockEnhancedChainOfThought[mockEnhancedChainOfThought.length - 1]?.timestamp || 16000
 
@@ -252,7 +142,7 @@ export function EnhancedChainOfThoughtReplay() {
     return () => {
       if (interval) clearTimeout(interval)
     }
-  }, [isPlaying, currentStep, playbackSpeed, totalDuration])
+  }, [isPlaying, currentStep, playbackSpeed, totalDuration, mockEnhancedChainOfThought])
 
   const handlePlay = () => {
     if (currentStep >= mockEnhancedChainOfThought.length) {
@@ -277,6 +167,12 @@ export function EnhancedChainOfThoughtReplay() {
   }
 
   const visibleSteps = mockEnhancedChainOfThought.slice(0, currentStep + 1)
+  const finalStep = mockEnhancedChainOfThought[mockEnhancedChainOfThought.length - 1]
+  const isSuccessfulReview =
+    finalStep?.content.includes("✅") ||
+    finalStep?.content.includes("🏆") ||
+    finalStep?.content.includes("APPROVAL RECOMMENDED")
+  const hasConflicts = visibleSteps.some((step) => step.conflictingKnowledge && step.conflictingKnowledge.length > 0)
 
   return (
     <div className="space-y-6">
@@ -287,6 +183,27 @@ export function EnhancedChainOfThoughtReplay() {
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               Enhanced Chain of Thought Replay
             </span>
+            {!isPlaying && currentStep >= mockEnhancedChainOfThought.length - 1 && (
+              <Badge
+                className={
+                  isSuccessfulReview
+                    ? "bg-green-900/30 text-green-400 border-green-600"
+                    : "bg-yellow-900/30 text-yellow-400 border-yellow-600"
+                }
+              >
+                {isSuccessfulReview ? (
+                  <>
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Review Complete - Approved
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Review Complete - Needs Attention
+                  </>
+                )}
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription className="text-white/70">
             Watch the AI's reasoning process with real-time knowledge retrieval and conflict detection
@@ -370,6 +287,12 @@ export function EnhancedChainOfThoughtReplay() {
             const timeFromStart = (step.timestamp / 1000).toFixed(1)
             const thoughtNumber = originalIndex + 1
             const hasConflict = step.conflictingKnowledge && step.conflictingKnowledge.length > 0
+            const isSuccessStep =
+              step.content.includes("✅") ||
+              step.content.includes("🏆") ||
+              step.content.includes("APPROVAL RECOMMENDED") ||
+              step.content.includes("EXCELLENT") ||
+              step.content.includes("EXCEPTIONAL")
 
             return (
               <div key={step.id} className="space-y-3">
@@ -384,27 +307,39 @@ export function EnhancedChainOfThoughtReplay() {
                   }`}
                 >
                   <Card
-                    className={`bg-black border-slate-700 ${isCurrentStep ? "ring-2 ring-purple-500" : ""} ${hasConflict ? "ring-2 ring-red-500" : ""}`}
+                    className={`bg-black border-slate-700 ${
+                      isCurrentStep ? (isSuccessStep ? "ring-2 ring-green-500" : "ring-2 ring-purple-500") : ""
+                    } ${hasConflict ? "ring-2 ring-red-500" : ""} ${isSuccessStep && !isCurrentStep ? "ring-1 ring-green-600" : ""}`}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         {/* Step Icon with Number */}
                         <div className="flex flex-col items-center gap-1">
                           <div
-                            className={`flex-shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center ${getStepColor(step.type, hasConflict)} ${
+                            className={`flex-shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center ${getStepColor(step, hasConflict)} ${
                               isCurrentStep ? "ring-2 ring-purple-400 ring-offset-2 ring-offset-black" : ""
-                            } ${hasConflict ? "ring-2 ring-red-400 ring-offset-2 ring-offset-black" : ""}`}
+                            } ${hasConflict ? "ring-2 ring-red-400 ring-offset-2 ring-offset-black" : ""} ${isSuccessStep ? "ring-2 ring-green-400 ring-offset-2 ring-offset-black" : ""}`}
                           >
-                            {hasConflict ? <XCircle className="h-4 w-4" /> : getStepIcon(step.type, step.actionType)}
+                            {hasConflict ? (
+                              <XCircle className="h-4 w-4" />
+                            ) : getSuccessIcon(step.content) ? (
+                              getSuccessIcon(step.content)
+                            ) : (
+                              getStepIcon(step.type, step.actionType)
+                            )}
                           </div>
                           <Badge
                             variant="outline"
                             className={`text-xs px-1.5 py-0.5 border-slate-600 ${
                               isCurrentStep
-                                ? "bg-purple-900/30 text-purple-400"
+                                ? isSuccessStep
+                                  ? "bg-green-900/30 text-green-400"
+                                  : "bg-purple-900/30 text-purple-400"
                                 : hasConflict
                                   ? "bg-red-900/30 text-red-400"
-                                  : "text-white/70"
+                                  : isSuccessStep
+                                    ? "bg-green-900/30 text-green-400"
+                                    : "text-white/70"
                             }`}
                           >
                             #{thoughtNumber}
@@ -418,8 +353,12 @@ export function EnhancedChainOfThoughtReplay() {
                               <Badge
                                 variant="outline"
                                 className={`text-xs capitalize border-slate-600 ${
-                                  isCurrentStep ? "bg-purple-900/30 text-purple-400" : ""
-                                } ${hasConflict ? "bg-red-900/30 text-red-400" : "text-white/70"}`}
+                                  isCurrentStep
+                                    ? isSuccessStep
+                                      ? "bg-green-900/30 text-green-400"
+                                      : "bg-purple-900/30 text-purple-400"
+                                    : ""
+                                } ${hasConflict ? "bg-red-900/30 text-red-400" : isSuccessStep ? "bg-green-900/30 text-green-400" : "text-white/70"}`}
                               >
                                 {step.type}
                               </Badge>
@@ -427,10 +366,14 @@ export function EnhancedChainOfThoughtReplay() {
                                 <span
                                   className={`text-sm ${
                                     isCurrentStep
-                                      ? "text-purple-300 font-medium"
+                                      ? isSuccessStep
+                                        ? "text-green-300 font-medium"
+                                        : "text-purple-300 font-medium"
                                       : hasConflict
                                         ? "text-red-300 font-medium"
-                                        : "text-white/60"
+                                        : isSuccessStep
+                                          ? "text-green-300 font-medium"
+                                          : "text-white/60"
                                   }`}
                                 >
                                   {step.context}
@@ -442,10 +385,31 @@ export function EnhancedChainOfThoughtReplay() {
                                   Conflict Detected
                                 </Badge>
                               )}
+                              {isSuccessStep && (
+                                <Badge className="text-xs bg-green-900/30 text-green-400 border-green-600">
+                                  {step.content.includes("🏆") ? (
+                                    <>
+                                      <Award className="h-3 w-3 mr-1" />
+                                      Exceptional
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Approved
+                                    </>
+                                  )}
+                                </Badge>
+                              )}
                               {isCurrentStep && (
                                 <div className="flex items-center gap-1">
-                                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                                  <span className="text-xs text-purple-400 font-medium">Processing</span>
+                                  <div
+                                    className={`w-2 h-2 rounded-full animate-pulse ${isSuccessStep ? "bg-green-500" : "bg-purple-500"}`}
+                                  />
+                                  <span
+                                    className={`text-xs font-medium ${isSuccessStep ? "text-green-400" : "text-purple-400"}`}
+                                  >
+                                    {isSuccessStep ? "Completing" : "Processing"}
+                                  </span>
                                 </div>
                               )}
                             </div>
@@ -455,7 +419,9 @@ export function EnhancedChainOfThoughtReplay() {
                               {step.confidence && (
                                 <Badge
                                   variant="outline"
-                                  className={`text-xs border-slate-600 ${hasConflict ? "text-red-400" : "text-white/70"}`}
+                                  className={`text-xs border-slate-600 ${
+                                    hasConflict ? "text-red-400" : isSuccessStep ? "text-green-400" : "text-white/70"
+                                  }`}
                                 >
                                   {Math.round(step.confidence * 100)}% confident
                                 </Badge>
@@ -468,29 +434,35 @@ export function EnhancedChainOfThoughtReplay() {
                             className={`p-3 rounded-lg transition-colors ${
                               hasConflict
                                 ? "bg-red-900/20 border border-red-800"
-                                : step.type === "thought"
-                                  ? isCurrentStep
-                                    ? "bg-purple-900/20 border border-purple-800"
-                                    : "bg-purple-900/10"
-                                  : step.type === "action"
+                                : isSuccessStep
+                                  ? "bg-green-900/20 border border-green-800"
+                                  : step.type === "thought"
                                     ? isCurrentStep
-                                      ? "bg-orange-900/20 border border-orange-800"
-                                      : "bg-orange-900/10"
-                                    : step.type === "observation"
+                                      ? "bg-purple-900/20 border border-purple-800"
+                                      : "bg-purple-900/10"
+                                    : step.type === "action"
                                       ? isCurrentStep
-                                        ? "bg-blue-900/20 border border-blue-800"
-                                        : "bg-blue-900/10"
-                                      : step.type === "decision"
+                                        ? "bg-orange-900/20 border border-orange-800"
+                                        : "bg-orange-900/10"
+                                      : step.type === "observation"
                                         ? isCurrentStep
-                                          ? "bg-green-900/20 border border-green-800"
-                                          : "bg-green-900/10"
-                                        : isCurrentStep
-                                          ? "bg-yellow-900/20 border border-yellow-800"
-                                          : "bg-yellow-900/10"
+                                          ? "bg-blue-900/20 border border-blue-800"
+                                          : "bg-blue-900/10"
+                                        : step.type === "decision"
+                                          ? isCurrentStep
+                                            ? "bg-green-900/20 border border-green-800"
+                                            : "bg-green-900/10"
+                                          : isCurrentStep
+                                            ? "bg-yellow-900/20 border border-yellow-800"
+                                            : "bg-yellow-900/10"
                             }`}
                           >
                             <p
-                              className={`text-sm leading-relaxed ${isCurrentStep || hasConflict ? "font-medium text-white" : "text-white/80"}`}
+                              className={`text-sm leading-relaxed ${
+                                isCurrentStep || hasConflict || isSuccessStep
+                                  ? "font-medium text-white"
+                                  : "text-white/80"
+                              }`}
                             >
                               {step.content}
                             </p>
@@ -501,16 +473,22 @@ export function EnhancedChainOfThoughtReplay() {
                             <div className="flex flex-wrap gap-2 text-xs">
                               {step.appliedPolicies && (
                                 <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-600">
-                                  <Database className="h-3 w-3 mr-1" />
+                                  <Shield className="h-3 w-3 mr-1" />
                                   {step.appliedPolicies.length} policies applied
                                 </Badge>
                               )}
                               {step.knowledgeConfidence && (
                                 <Badge
                                   variant="outline"
-                                  className={`border-slate-600 ${hasConflict ? "bg-red-900/30 text-red-400" : "bg-blue-900/30 text-blue-400"}`}
+                                  className={`border-slate-600 ${
+                                    hasConflict
+                                      ? "bg-red-900/30 text-red-400"
+                                      : isSuccessStep
+                                        ? "bg-green-900/30 text-green-400"
+                                        : "bg-blue-900/30 text-blue-400"
+                                  }`}
                                 >
-                                  <TrendingUp className="h-3 w-3 mr-1" />
+                                  <Database className="h-3 w-3 mr-1" />
                                   {Math.round(step.knowledgeConfidence * 100)}% knowledge confidence
                                 </Badge>
                               )}
@@ -534,7 +512,10 @@ export function EnhancedChainOfThoughtReplay() {
                                 </Badge>
                               )}
                               {step.metadata.score && (
-                                <Badge variant="outline" className="border-slate-600 text-white/70">
+                                <Badge
+                                  variant="outline"
+                                  className={`border-slate-600 ${isSuccessStep ? "text-green-400" : "text-white/70"}`}
+                                >
                                   <TrendingUp className="h-3 w-3 mr-1" />
                                   Score: {step.metadata.score}
                                 </Badge>
@@ -553,7 +534,9 @@ export function EnhancedChainOfThoughtReplay() {
 
       {/* Progress Summary */}
       {visibleSteps.length > 0 && (
-        <Card className="border-dashed border-2 border-slate-600 bg-slate-900/50">
+        <Card
+          className={`border-dashed border-2 ${isSuccessfulReview ? "border-green-600 bg-green-900/10" : hasConflicts ? "border-red-600 bg-red-900/10" : "border-slate-600 bg-slate-900/50"}`}
+        >
           <CardContent className="p-4 text-center">
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-white/60">
               <div className="flex items-center gap-2">
@@ -570,14 +553,20 @@ export function EnhancedChainOfThoughtReplay() {
                   knowledge retrievals
                 </span>
               </div>
-              <div className="w-1 h-1 bg-slate-400 rounded-full" />
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-400" />
-                <span>
-                  <strong className="text-red-400">{visibleSteps.filter((s) => s.conflictingKnowledge).length}</strong>{" "}
-                  conflicts detected
-                </span>
-              </div>
+              {hasConflicts && (
+                <>
+                  <div className="w-1 h-1 bg-slate-400 rounded-full" />
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-red-400" />
+                    <span>
+                      <strong className="text-red-400">
+                        {visibleSteps.filter((s) => s.conflictingKnowledge).length}
+                      </strong>{" "}
+                      conflicts detected
+                    </span>
+                  </div>
+                </>
+              )}
               <div className="w-1 h-1 bg-slate-400 rounded-full" />
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -592,8 +581,26 @@ export function EnhancedChainOfThoughtReplay() {
                 <>
                   <div className="w-1 h-1 bg-slate-400 rounded-full" />
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-orange-400" />
-                    <span className="text-orange-400 font-medium">Human Review Required</span>
+                    {isSuccessfulReview ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-400" />
+                        <span className="text-green-400 font-medium">
+                          {finalStep?.content.includes("🏆")
+                            ? "Exceptional Quality - Approved"
+                            : "Review Complete - Approved"}
+                        </span>
+                      </>
+                    ) : hasConflicts ? (
+                      <>
+                        <Users className="h-4 w-4 text-orange-400" />
+                        <span className="text-orange-400 font-medium">Human Review Required</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                        <span className="text-yellow-400 font-medium">Review Complete - Needs Attention</span>
+                      </>
+                    )}
                   </div>
                 </>
               )}

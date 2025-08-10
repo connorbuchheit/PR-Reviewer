@@ -4,8 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Database, Github, FileText, Slack, RefreshCw, Clock, Shield, TrendingUp, Wifi, WifiOff } from "lucide-react"
+import { Database, Github, FileText, Slack, RefreshCw, Clock, Wifi, WifiOff, Package, ExternalLink } from "lucide-react"
 import type { KnowledgeSource } from "@/types/knowledge-base"
 
 const mockKnowledgeSources: KnowledgeSource[] = [
@@ -53,14 +52,15 @@ const mockKnowledgeSources: KnowledgeSource[] = [
     scope: "team",
   },
   {
-    id: "slack_discussions",
-    name: "Engineering Discussions",
-    type: "slack",
+    id: "sdk_docs",
+    name: "SDK Documentation",
+    type: "s3",
+    url: "s3://company-docs/sdk/",
     lastUpdated: "2024-01-15T10:30:00Z",
     status: "active",
-    confidence: 0.65,
-    priority: "low",
-    scope: "team",
+    confidence: 0.78,
+    priority: "medium",
+    scope: "global",
   },
 ]
 
@@ -76,8 +76,35 @@ const getSourceIcon = (type: string) => {
       return <Slack className="h-4 w-4" />
     case "pdf":
       return <FileText className="h-4 w-4" />
+    case "s3":
+      return <Database className="h-4 w-4" />
+    case "jira":
+      return <Package className="h-4 w-4" />
     default:
       return <Database className="h-4 w-4" />
+  }
+}
+
+const getProviderName = (type: string) => {
+  switch (type) {
+    case "github":
+      return "GitHub"
+    case "confluence":
+      return "Confluence"
+    case "notion":
+      return "Notion"
+    case "slack":
+      return "Slack"
+    case "pdf":
+      return "PDF Storage"
+    case "s3":
+      return "Amazon S3"
+    case "jira":
+      return "Jira"
+    case "google_drive":
+      return "Google Drive"
+    default:
+      return "Unknown"
   }
 }
 
@@ -143,7 +170,7 @@ export function KnowledgeBaseStatus() {
           <div className="flex items-center gap-2">
             <Database className="h-5 w-5 text-purple-400" />
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Knowledge Base Status
+              Knowledge Base
             </span>
           </div>
           <Button
@@ -157,72 +184,52 @@ export function KnowledgeBaseStatus() {
             Sync
           </Button>
         </CardTitle>
-        <CardDescription className="text-white/70">Real-time status of knowledge sources</CardDescription>
+        <CardDescription className="text-white/70">Knowledge sources overview</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Simple Stats Row */}
-        <div className="grid grid-cols-3 gap-4 p-3 bg-slate-800 rounded-lg">
+      <CardContent className="space-y-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-3 gap-4 p-4 bg-slate-800 rounded-lg">
           <div className="text-center">
-            <div className="text-xl font-bold text-green-400">{activeCount}</div>
-            <div className="text-xs text-white/60">Active</div>
+            <div className="text-2xl font-bold text-green-400 mb-1">{activeCount}</div>
+            <div className="text-sm text-white/60">Active Sources</div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-bold text-blue-400">{Math.round(avgConfidence * 100)}%</div>
-            <div className="text-xs text-white/60">Confidence</div>
+            <div className="text-2xl font-bold text-blue-400 mb-1">{Math.round(avgConfidence * 100)}%</div>
+            <div className="text-sm text-white/60">Avg Confidence</div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-bold text-white">{totalCount}</div>
-            <div className="text-xs text-white/60">Total</div>
+            <div className="text-2xl font-bold text-white mb-1">{totalCount}</div>
+            <div className="text-sm text-white/60">Total Sources</div>
           </div>
         </div>
 
-        {/* Simple Knowledge Sources List */}
+        {/* Quick Summary */}
         <div className="space-y-3">
-          {mockKnowledgeSources.map((source) => (
-            <div key={source.id} className="border border-slate-700 rounded-lg p-3 hover:bg-slate-800/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className={`p-2 rounded ${getStatusColor(source.status)}`}>{getSourceIcon(source.type)}</div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-sm truncate text-white">{source.name}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={`text-xs ${getStatusColor(source.status)}`}>
-                        {getStatusIcon(source.status)}
-                        <span className="ml-1">{source.status}</span>
-                      </Badge>
-                      <span className="text-xs text-white/50">{source.scope}</span>
-                    </div>
-                  </div>
+          <h3 className="text-sm font-medium text-white mb-3">Recent Activity</h3>
+          {mockKnowledgeSources.slice(0, 2).map((source) => (
+            <div key={source.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${getStatusColor(source.status)}`}>{getSourceIcon(source.type)}</div>
+                <div>
+                  <div className="font-medium text-white text-sm">{source.name}</div>
+                  <div className="text-xs text-white/60">via {getProviderName(source.type)}</div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-white">{Math.round(source.confidence * 100)}%</div>
-                    <div className="text-xs text-white/50">{getTimeAgo(source.lastUpdated)}</div>
-                  </div>
-                  <Progress value={source.confidence * 100} className="w-16 h-2 bg-slate-800" />
-                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={`text-xs ${getStatusColor(source.status)}`}>
+                  {getStatusIcon(source.status)}
+                  <span className="ml-1">{source.status}</span>
+                </Badge>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Simple Actions */}
-        <div className="flex gap-2 pt-2 border-t border-slate-700">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 bg-transparent border-slate-600 text-white hover:bg-slate-800"
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Policies
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 bg-transparent border-slate-600 text-white hover:bg-slate-800"
-          >
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Analytics
+        {/* View Full Details Button */}
+        <div className="pt-4 border-t border-slate-700">
+          <Button variant="outline" className="w-full bg-transparent border-slate-600 text-white hover:bg-slate-800">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View Full Knowledge Base
           </Button>
         </div>
       </CardContent>
