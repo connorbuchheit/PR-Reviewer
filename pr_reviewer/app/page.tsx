@@ -9,17 +9,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
+import { ReasoningFlowGraph } from "@/components/reasoning-flow-graph"
+import { ReasoningTimeline } from "@/components/reasoning-timeline"
+import { ChainOfThoughtReplay } from "@/components/chain-of-thought-replay"
 import {
   GitPullRequest,
   Play,
   RotateCcw,
   Eye,
-  Clock,
   GitBranch,
   FileText,
   AlertTriangle,
-  CheckCircle,
   Package,
   Zap,
   Brain,
@@ -74,45 +74,6 @@ export default function PRReviewAgent() {
       { name: "@types/node", reason: "Missing type definitions for Node.js" },
     ],
   }
-
-  const mockReasoningSteps = [
-    {
-      id: 1,
-      type: "retrieval",
-      title: "Repository Analysis",
-      description: "Analyzing repository structure and coding patterns",
-      timestamp: "2024-01-15T10:30:00Z",
-      duration: "2.3s",
-      status: "completed",
-    },
-    {
-      id: 2,
-      type: "reasoning",
-      title: "Style Guide Application",
-      description: "Applying performance-focused review criteria",
-      timestamp: "2024-01-15T10:30:02Z",
-      duration: "1.8s",
-      status: "completed",
-    },
-    {
-      id: 3,
-      type: "generation",
-      title: "Comment Generation",
-      description: "Generating line-level and file-level comments",
-      timestamp: "2024-01-15T10:30:04Z",
-      duration: "3.1s",
-      status: "completed",
-    },
-    {
-      id: 4,
-      type: "tool_call",
-      title: "Package Analysis",
-      description: "Analyzing dependencies and suggesting improvements",
-      timestamp: "2024-01-15T10:30:07Z",
-      duration: "1.5s",
-      status: "completed",
-    },
-  ]
 
   const handleReview = () => {
     setIsReviewing(true)
@@ -260,7 +221,7 @@ export default function PRReviewAgent() {
                 <TabsTrigger value="results">Review Results</TabsTrigger>
                 <TabsTrigger value="reasoning">Reasoning Flow</TabsTrigger>
                 <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                <TabsTrigger value="replay">Replay</TabsTrigger>
+                <TabsTrigger value="replay">Chain of Thought</TabsTrigger>
               </TabsList>
 
               <TabsContent value="results" className="space-y-6">
@@ -348,98 +309,15 @@ export default function PRReviewAgent() {
               </TabsContent>
 
               <TabsContent value="reasoning" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Reasoning Flow Visualization</CardTitle>
-                    <CardDescription>Interactive graph showing the agent's decision-making process</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-96 bg-slate-50 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300">
-                      <div className="text-center space-y-2">
-                        <Brain className="h-12 w-12 text-slate-400 mx-auto" />
-                        <p className="text-slate-600">Interactive reasoning flow graph would appear here</p>
-                        <p className="text-sm text-slate-500">Built with React Flow for node-based visualization</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ReasoningFlowGraph />
               </TabsContent>
 
               <TabsContent value="timeline" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Clock className="h-5 w-5" />
-                      Agent Timeline
-                    </CardTitle>
-                    <CardDescription>Step-by-step breakdown of the review process</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {mockReasoningSteps.map((step, index) => (
-                        <div key={step.id} className="flex items-start gap-4">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <CheckCircle className="h-4 w-4 text-blue-600" />
-                            </div>
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium">{step.title}</h4>
-                              <div className="flex items-center gap-2 text-sm text-slate-500">
-                                <span>{step.duration}</span>
-                                <Badge variant="outline" className="text-xs">
-                                  {step.type}
-                                </Badge>
-                              </div>
-                            </div>
-                            <p className="text-sm text-slate-600">{step.description}</p>
-                            <p className="text-xs text-slate-500">{new Date(step.timestamp).toLocaleTimeString()}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <ReasoningTimeline />
               </TabsContent>
 
               <TabsContent value="replay" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Deterministic Replay</CardTitle>
-                    <CardDescription>Re-run the review with different parameters or compare outcomes</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button variant="outline" className="h-20 flex-col bg-transparent">
-                        <RotateCcw className="h-6 w-6 mb-2" />
-                        Exact Replay
-                      </Button>
-                      <Button variant="outline" className="h-20 flex-col bg-transparent">
-                        <TrendingUp className="h-6 w-6 mb-2" />
-                        Counterfactual
-                      </Button>
-                    </div>
-                    <Separator />
-                    <div className="space-y-2">
-                      <Label>Replay with different criteria:</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select criteria to compare" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="security">Security Focus</SelectItem>
-                          <SelectItem value="style">Style Focus</SelectItem>
-                          <SelectItem value="testing">Testing Focus</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button className="w-full">
-                      <Play className="h-4 w-4 mr-2" />
-                      Start Comparison Replay
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ChainOfThoughtReplay />
               </TabsContent>
             </Tabs>
           </div>
