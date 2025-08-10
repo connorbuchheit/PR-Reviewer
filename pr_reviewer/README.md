@@ -1,7 +1,5 @@
 A modern React/Next.js frontend for the PR Reviewer with AgentOps replay capabilities.
 
-## Getting Started
-
 ### Prerequisites
 
 - Node.js 18+ 
