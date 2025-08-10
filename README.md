@@ -122,7 +122,7 @@ The system both **reviews PRs intelligently** and **logs every reasoning step, t
 ```
 /agent/           # PR review agent code
 /logging/         # Logging middleware & schema
-/frontend/        # React UI for visualization & replay
+/pr_reviewer/     # React UI for visualization & replay
 /data/            # Demo repos, mock PRs, style guides
 README.md         # This file
 ```
