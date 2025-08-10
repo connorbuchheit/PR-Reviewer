@@ -16,10 +16,11 @@ The system both **reviews PRs intelligently** and **logs every reasoning step, t
    - Allow the user to define review criteria in a textbox at runtime (e.g., "focus on performance", or give a specific style guide to work with).
    - Use **Context-Aware Generation (CAG)** with LangChain to contextualize the model’s output with the provided style guide or repo norms.
 
-3. **Transparent AgentOps Layer**
+3. **Transparent AgentOps Layer (via RAG)**
    - Capture **structured logs** of prompts, tool calls, retrieved docs, model I/O, and reasoning traces.
    - Visualize decision flow and timeline.
    - Enable deterministic replay for debugging, compliance, and experimentation.
+   - Audit workflows using RAG-based comparisons of relevant information from knowledge base and PR contents / suggestions from reviewer agent.  
 
 ---
 
@@ -47,7 +48,8 @@ The system both **reviews PRs intelligently** and **logs every reasoning step, t
       "retrieved_docs": [],
       "style_guide": "...",
       "package_suggestions": [],
-      "model_params": { "temp": 0.2, "top_p": 0.95, "model": "..." }
+      "model_params": { "temp": 0.2, "top_p": 0.95, "model": "..." },
+       ...
     }
     ```
   - Store logs in JSONL or Postgres.
