@@ -136,6 +136,7 @@ pip install -r requirements.txt
 python agent/run_agent.py --repo demo-repo --pr 1 --criteria "strict style"
 
 # Start frontend
-cd frontend
-npm install && npm run dev
+`cd pr_reviewer`
+`npm install`
+`npm run dev`
 ```
