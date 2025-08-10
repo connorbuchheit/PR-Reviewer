@@ -72,6 +72,23 @@ const getTypeColor = (type: string) => {
   }
 }
 
+const getTimelineBarColor = (type: string) => {
+  switch (type) {
+    case "retrieval":
+      return "bg-blue-500/60 hover:bg-blue-500/80"
+    case "reasoning":
+      return "bg-purple-500/60 hover:bg-purple-500/80"
+    case "analysis":
+      return "bg-green-500/60 hover:bg-green-500/80"
+    case "tool_call":
+      return "bg-orange-500/60 hover:bg-orange-500/80"
+    case "generation":
+      return "bg-pink-500/60 hover:bg-pink-500/80"
+    default:
+      return "bg-gray-500/60 hover:bg-gray-500/80"
+  }
+}
+
 export function ReasoningTimeline({ prId = "pr_142" }: ReasoningTimelineProps) {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set())
 
@@ -121,13 +138,11 @@ export function ReasoningTimeline({ prId = "pr_142" }: ReasoningTimelineProps) {
           <div className="flex gap-1 h-2 bg-slate-700 rounded-full overflow-hidden">
             {mockTimelineData.map((step, index) => {
               const widthPercent = (step.durationMs / totalDuration) * 100
-              const baseColor = getTypeColor(step.type).split(" ")[1].replace("/40", "/50")
-              const hoverColor = getTypeColor(step.type).split(" ")[1].replace("/40", "/80")
 
               return (
                 <div
                   key={step.node_id}
-                  className={`h-full transition-all duration-200 cursor-pointer ${baseColor} hover:${hoverColor} hover:scale-y-125 hover:shadow-lg`}
+                  className={`h-full transition-all duration-200 cursor-pointer hover:scale-y-125 hover:shadow-lg ${getTimelineBarColor(step.type)}`}
                   style={{ width: `${widthPercent}%` }}
                   title={`${step.title}: ${step.duration}`}
                 />
