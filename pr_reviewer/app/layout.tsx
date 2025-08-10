@@ -6,8 +6,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "PR Review Agent",
-  description: "AI-powered code review with reasoning replay",
+  title: "Luci",
+  description: "Audit arena for eLucidating GitHub PR review agent workflows",
 }
 
 export default function RootLayout({

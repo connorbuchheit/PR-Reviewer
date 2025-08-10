@@ -87,9 +87,9 @@ export default function PRReviewAgent() {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                PR Review Agent
+                Luci
               </h1>
-              <p className="text-white/70">AI-powered code review with reasoning replay</p>
+              <p className="text-white/70">Audit arena for e<b>Luci</b>dating GitHub PR review agent workflows</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -270,49 +270,51 @@ export default function PRReviewAgent() {
           {/* Middle Column - Review Results */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="results" className="w-full">
-              <TabsList className="grid w-full grid-cols-7 bg-slate-800 border-slate-700">
-                <TabsTrigger
-                  value="results"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  Results
-                </TabsTrigger>
-                <TabsTrigger
-                  value="policies"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  Policies
-                </TabsTrigger>
-                <TabsTrigger
-                  value="conflicts"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  KB Conflicts
-                </TabsTrigger>
-                <TabsTrigger
-                  value="knowledge"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  Knowledge Base
-                </TabsTrigger>
-                <TabsTrigger
-                  value="reasoning"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  Flow
-                </TabsTrigger>
-                <TabsTrigger
-                  value="timeline"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  Timeline
-                </TabsTrigger>
-                <TabsTrigger
-                  value="replay"
-                  className="data-[state=active]:bg-black data-[state=active]:text-purple-400"
-                >
-                  Chain of Thought
-                </TabsTrigger>
+              <TabsList className="w-full bg-slate-800 border-slate-700 p-1 h-12">
+                <div className="grid grid-cols-7 w-full gap-1">
+                  <TabsTrigger
+                    value="results"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    Results
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="policies"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    Policies
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="conflicts"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    KB Conflicts
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="knowledge"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    Knowledge
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="reasoning"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    Flow
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="timeline"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    Timeline
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="replay"
+                    className="flex-1 text-xs font-medium px-2 py-2 data-[state=active]:bg-black data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all duration-200 hover:bg-slate-700/50"
+                  >
+                    Chain of Thought
+                  </TabsTrigger>
+                </div>
               </TabsList>
 
               <TabsContent value="results" className="space-y-6">
