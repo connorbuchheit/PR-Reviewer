@@ -11,7 +11,7 @@ class FileDiff:
     additions: int
     deletions: int
     diff_content: str
-    status: str  # added, modified, deleted
+    status: str
 
 
 @dataclass
@@ -43,7 +43,7 @@ class MockGitHubClient:
             sample_data = {
                 "pr_number": 1,
                 "title": "Add user authentication feature",
-                "description": "This PR adds JWT-based user authentication with login/logout endpoints.",
+                "description": "This PR adds JWT-based user authentication.",
                 "base_branch": "main",
                 "head_branch": "feature/auth",
                 "files_changed": [
@@ -51,60 +51,7 @@ class MockGitHubClient:
                         "file_path": "src/auth/__init__.py",
                         "additions": 15,
                         "deletions": 0,
-                        "diff_content": """@@ -0,0 +1,15 @@
-+"""
-+from .jwt_auth import JWTAuth
-+from .models import User, LoginRequest
-+
-+__all__ = ["JWTAuth", "User", "LoginRequest"]
-+""",
-                        "status": "added"
-                    },
-                    {
-                        "file_path": "src/auth/jwt_auth.py",
-                        "additions": 45,
-                        "deletions": 0,
-                        "diff_content": """@@ -0,0 +1,45 @@
-+import jwt
-+from datetime import datetime, timedelta
-+from typing import Optional
-+
-+class JWTAuth:
-+    def __init__(self, secret_key: str):
-+        self.secret_key = secret_key
-+    
-+    def create_token(self, user_id: str, expires_in: int = 3600) -> str:
-+        payload = {
-+            "user_id": user_id,
-+            "exp": datetime.utcnow() + timedelta(seconds=expires_in)
-+        }
-+        return jwt.encode(payload, self.secret_key, algorithm="HS256")
-+    
-+    def verify_token(self, token: str) -> Optional[dict]:
-+        try:
-+            return jwt.decode(token, self.secret_key, algorithms=["HS256"])
-+        except jwt.InvalidTokenError:
-+            return None
-+""",
-                        "status": "added"
-                    },
-                    {
-                        "file_path": "src/auth/models.py",
-                        "additions": 20,
-                        "deletions": 0,
-                        "diff_content": """@@ -0,0 +1,20 @@
-+from pydantic import BaseModel
-+from typing import Optional
-+
-+class User(BaseModel):
-+    id: str
-+    username: str
-+    email: str
-+    is_active: bool = True
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str""",
+                        "diff_content": "Sample diff content",
                         "status": "added"
                     }
                 ],
@@ -117,13 +64,11 @@ class LoginRequest(BaseModel):
     
     def get_pr(self, repo: str, pr_number: int) -> PRInfo:
         """Get PR information and diff."""
-        # For now, return the sample data
         sample_file = self.mock_data_dir / "sample_pr.json"
         
         with open(sample_file, "r") as f:
             data = json.load(f)
         
-        # Convert to FileDiff objects
         files_changed = [
             FileDiff(**file_data) for file_data in data["files_changed"]
         ]
@@ -141,48 +86,10 @@ class LoginRequest(BaseModel):
     
     def get_file_content(self, repo: str, file_path: str, ref: str = "main") -> str:
         """Get file content from a specific branch/ref."""
-        # Mock implementation - return sample content
         mock_files = {
-            "src/auth/jwt_auth.py": """import jwt
-from datetime import datetime, timedelta
-from typing import Optional
-
-class JWTAuth:
-    def __init__(self, secret_key: str):
-        self.secret_key = secret_key
-    
-    def create_token(self, user_id: str, expires_in: int = 3600) -> str:
-        payload = {
-            "user_id": user_id,
-            "exp": datetime.utcnow() + timedelta(seconds=expires_in)
-        }
-        return jwt.encode(payload, self.secret_key, algorithm="HS256")
-    
-    def verify_token(self, token: str) -> Optional[dict]:
-        try:
-            return jwt.decode(token, self.secret_key, algorithms=["HS256"])
-        except jwt.InvalidTokenError:
-            return None""",
-            
-            "src/auth/models.py": """from pydantic import BaseModel
-from typing import Optional
-
-class User(BaseModel):
-    id: str
-    username: str
-    email: str
-    is_active: bool = True
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str""",
-            
-            "requirements.txt": """fastapi>=0.68.0
-uvicorn>=0.15.0
-pydantic>=2.0.0
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.5"""
+            "src/auth/jwt_auth.py": "import jwt\nclass JWTAuth:\n    pass",
+            "src/auth/models.py": "from pydantic import BaseModel\nclass User(BaseModel):\n    pass",
+            "requirements.txt": "fastapi>=0.68.0\npydantic>=2.0.0"
         }
         
         return mock_files.get(file_path, f"# Mock content for {file_path}")

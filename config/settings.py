@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     
     # Logging Configuration
     log_level: str = "INFO"
-    logs_dir: str = "logs/sessions"
+    logs_dir: str = "app_logging/sessions"
     
     # GitHub Configuration (for future use)
     github_token: Optional[str] = None

@@ -3,12 +3,12 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 
-from ..logging.logger.session_logger import SessionLogger
+from app_logging.logger.session_logger import SessionLogger
 from ..reviewer.pr_reviewer import PRReviewer
 from ..retrieval.context_retriever import ContextRetriever
 from ..criteria.criteria_processor import CriteriaProcessor
 from ..providers.github_client import MockGitHubClient
-from ..logging.schemas.models import SessionLog, PRReview
+from app_logging.schemas.models import SessionLog, PRReview
 from config.settings import settings
 
 

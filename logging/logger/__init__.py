@@ -1,3 +1,0 @@
-"""
-Session logging and persistence.
-""" 

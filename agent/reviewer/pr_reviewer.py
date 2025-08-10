@@ -5,11 +5,11 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.output_parsers import PydanticOutputParser
 
-from ..logging.schemas.models import (
+from app_logging.schemas.models import (
     PRReview, Comment, PackageSuggestion, ReasoningStep, 
     StepType, RetrievedDocument
 )
-from ..logging.logger.session_logger import SessionLogger
+from app_logging.logger.session_logger import SessionLogger
 from ..retrieval.context_retriever import ContextRetriever
 from ..criteria.criteria_processor import CriteriaProcessor
 from config.settings import settings

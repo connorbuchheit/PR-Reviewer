@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 import re
-from ..logging.schemas.models import RetrievedDocument
+from app_logging.schemas.models import RetrievedDocument
 
 
 class CriteriaProcessor:

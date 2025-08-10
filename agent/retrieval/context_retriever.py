@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from ..logging.schemas.models import RetrievedDocument
+from app_logging.schemas.models import RetrievedDocument
 from ..providers.github_client import MockGitHubClient, PRInfo
 from ..criteria.criteria_processor import CriteriaProcessor
 from config.settings import settings
