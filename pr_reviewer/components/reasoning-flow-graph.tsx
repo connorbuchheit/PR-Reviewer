@@ -16,7 +16,7 @@ interface ReasoningNode {
   inputs?: any
   outputs?: any
   reasoning?: string
-  connections: string[] // IDs of connected nodes
+  connections: string[]
 }
 
 const mockReasoningNodes: ReasoningNode[] = [
@@ -122,17 +122,17 @@ const getNodeIcon = (type: string) => {
 const getNodeColor = (type: string) => {
   switch (type) {
     case "retrieval":
-      return "bg-blue-100 border-blue-300 text-blue-800"
+      return "bg-blue-900/30 border-blue-600 text-blue-400"
     case "reasoning":
-      return "bg-purple-100 border-purple-300 text-purple-800"
+      return "bg-purple-900/30 border-purple-600 text-purple-400"
     case "analysis":
-      return "bg-green-100 border-green-300 text-green-800"
+      return "bg-green-900/30 border-green-600 text-green-400"
     case "tool_call":
-      return "bg-orange-100 border-orange-300 text-orange-800"
+      return "bg-orange-900/30 border-orange-600 text-orange-400"
     case "generation":
-      return "bg-pink-100 border-pink-300 text-pink-800"
+      return "bg-pink-900/30 border-pink-600 text-pink-400"
     default:
-      return "bg-gray-100 border-gray-300 text-gray-800"
+      return "bg-gray-900/30 border-gray-600 text-gray-400"
   }
 }
 
@@ -144,17 +144,21 @@ export function ReasoningFlowGraph() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-black border-slate-700">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Reasoning Flow Graph
+            <Brain className="h-5 w-5 text-purple-400" />
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Reasoning Flow Graph
+            </span>
           </CardTitle>
-          <CardDescription>Interactive visualization of the agent's decision-making process</CardDescription>
+          <CardDescription className="text-white/70">
+            Interactive visualization of the agent's decision-making process
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {/* Graph Container */}
-          <div className="relative bg-slate-50 rounded-lg p-8 min-h-[500px] overflow-auto">
+          <div className="relative bg-slate-900 rounded-lg p-8 min-h-[500px] overflow-auto">
             {/* SVG for connections */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
               {mockReasoningNodes.map((node) =>
@@ -162,7 +166,6 @@ export function ReasoningFlowGraph() {
                   const targetNode = mockReasoningNodes.find((n) => n.node_id === targetId)
                   if (!targetNode) return null
 
-                  // Simple positioning logic (in a real implementation, you'd use a proper graph layout algorithm)
                   const sourceIndex = mockReasoningNodes.findIndex((n) => n.node_id === node.node_id)
                   const targetIndex = mockReasoningNodes.findIndex((n) => n.node_id === targetId)
 
@@ -178,18 +181,17 @@ export function ReasoningFlowGraph() {
                       y1={sourceY}
                       x2={targetX}
                       y2={targetY}
-                      stroke="#94a3b8"
+                      stroke="#64748b"
                       strokeWidth="2"
                       markerEnd="url(#arrowhead)"
-                      className={hoveredNode === node.node_id || hoveredNode === targetId ? "stroke-blue-500" : ""}
+                      className={hoveredNode === node.node_id || hoveredNode === targetId ? "stroke-purple-400" : ""}
                     />
                   )
                 }),
               )}
-              {/* Arrow marker definition */}
               <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                  <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
                 </marker>
               </defs>
             </svg>
@@ -217,25 +219,25 @@ export function ReasoningFlowGraph() {
                 >
                   <div
                     className={`
-                    w-48 p-3 rounded-lg border-2 bg-white shadow-sm
+                    w-48 p-3 rounded-lg border-2 bg-black shadow-sm
                     ${getNodeColor(node.type)}
-                    ${selectedNode === node.node_id ? "ring-2 ring-blue-500" : ""}
+                    ${selectedNode === node.node_id ? "ring-2 ring-purple-500" : ""}
                   `}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       {getNodeIcon(node.type)}
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-slate-600 text-white/70">
                         {node.type}
                       </Badge>
                     </div>
-                    <h4 className="font-medium text-sm mb-1">{node.title}</h4>
+                    <h4 className="font-medium text-sm mb-1 text-white">{node.title}</h4>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-white/60">
                         <Clock className="h-3 w-3" />
                         {node.duration}
                       </span>
                       {node.confidence && (
-                        <span className="text-green-600 font-medium">{Math.round(node.confidence * 100)}%</span>
+                        <span className="text-green-400 font-medium">{Math.round(node.confidence * 100)}%</span>
                       )}
                     </div>
                   </div>
@@ -248,52 +250,54 @@ export function ReasoningFlowGraph() {
 
       {/* Node Details Panel */}
       {selectedNodeData && (
-        <Card>
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {getNodeIcon(selectedNodeData.type)}
-              {selectedNodeData.title}
-              <Badge variant="outline">{selectedNodeData.type}</Badge>
+              <span className="text-white">{selectedNodeData.title}</span>
+              <Badge variant="outline" className="border-slate-600 text-white/70">
+                {selectedNodeData.type}
+              </Badge>
             </CardTitle>
-            <CardDescription>Detailed reasoning and analysis for this step</CardDescription>
+            <CardDescription className="text-white/70">Detailed reasoning and analysis for this step</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
-                <span className="font-medium text-slate-600">Duration:</span>
+                <span className="font-medium text-white/60">Duration:</span>
                 <div className="flex items-center gap-1 mt-1">
-                  <Clock className="h-3 w-3" />
-                  {selectedNodeData.duration}
+                  <Clock className="h-3 w-3 text-white/60" />
+                  <span className="text-white">{selectedNodeData.duration}</span>
                 </div>
               </div>
               {selectedNodeData.confidence && (
                 <div>
-                  <span className="font-medium text-slate-600">Confidence:</span>
+                  <span className="font-medium text-white/60">Confidence:</span>
                   <div className="flex items-center gap-1 mt-1">
-                    <Zap className="h-3 w-3" />
-                    {Math.round(selectedNodeData.confidence * 100)}%
+                    <Zap className="h-3 w-3 text-white/60" />
+                    <span className="text-white">{Math.round(selectedNodeData.confidence * 100)}%</span>
                   </div>
                 </div>
               )}
               <div>
-                <span className="font-medium text-slate-600">Status:</span>
+                <span className="font-medium text-white/60">Status:</span>
                 <div className="flex items-center gap-1 mt-1">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
-                  {selectedNodeData.status}
+                  <CheckCircle className="h-3 w-3 text-green-400" />
+                  <span className="text-white">{selectedNodeData.status}</span>
                 </div>
               </div>
             </div>
 
             {selectedNodeData.reasoning && (
               <div>
-                <span className="font-medium text-slate-600">Reasoning:</span>
-                <p className="mt-1 text-sm text-slate-700 bg-slate-50 p-3 rounded">{selectedNodeData.reasoning}</p>
+                <span className="font-medium text-white/60">Reasoning:</span>
+                <p className="mt-1 text-sm text-white/80 bg-slate-800 p-3 rounded">{selectedNodeData.reasoning}</p>
               </div>
             )}
 
             {selectedNodeData.connections.length > 0 && (
               <div>
-                <span className="font-medium text-slate-600">Connected to:</span>
+                <span className="font-medium text-white/60">Connected to:</span>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {selectedNodeData.connections.map((connId) => {
                     const connectedNode = mockReasoningNodes.find((n) => n.node_id === connId)
@@ -303,7 +307,7 @@ export function ReasoningFlowGraph() {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedNode(connId)}
-                        className="text-xs"
+                        className="text-xs bg-transparent border-slate-600 text-white hover:bg-slate-800"
                       >
                         <ArrowRight className="h-3 w-3 mr-1" />
                         {connectedNode.title}
