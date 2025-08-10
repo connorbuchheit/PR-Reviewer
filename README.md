@@ -1,4 +1,4 @@
-# PR Review Agent + AgentOps Replay
+# PR Review Agent + Luci AgentOps Auditor
 
 ## Overview
 This project is a **GitHub Pull Request (PR) Review Agent** with **full reasoning trace logging and replay capabilities**.  
