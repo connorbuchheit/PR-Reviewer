@@ -1,5 +1,5 @@
 {
-  "name": "pr-review-agent-ui",
+  "name": "pr_reviewer",
   "version": "0.1.0",
   "private": true,
   "scripts": {
